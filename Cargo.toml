@@ -28,3 +28,8 @@ test-args = [
 ]
 test-success-exit-code = 33         # (0x10 << 1) | 1
 test-timeout = 30
+
+# disabling requirement of test harness for single integration test suites
+[[test]]
+name = "should_panic"
+harness = false

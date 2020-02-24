@@ -3,6 +3,9 @@ use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
 
+#[cfg(test)]
+use crate::{serial_print, serial_println};
+
 // all the colors which VGA text buffer supports in its 4 bit space
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -165,4 +168,36 @@ macro_rules! println {
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
+}
+
+// test cases for VGA buffer to check if the macros are doing fine
+#[test_case]
+fn test_println_simple() {
+    serial_print!("test_println... ");
+    println!("test_println_simple output");
+    serial_println!("[ok]");
+}
+
+#[test_case]
+fn test_println_many() {
+    serial_print!("test_println_many... ");
+    for _ in 0..200 {
+        println!("test_println_many output");
+    }
+    serial_println!("[ok]");
+}
+
+// test to check if things printed out by macro are really showing up in the VGA buffer
+#[test_case]
+fn test_println_output() {
+    serial_print!("test_println_output... ");
+
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
+
+    serial_println!("[ok]");
 }
