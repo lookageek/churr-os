@@ -8,7 +8,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use churr_os::println;
+use churr_os::{println, init};
 
 // this function is called on panic,
 // defining our own because std library of rust provides this
@@ -34,10 +34,15 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
+    init();
+
+    x86_64::instructions::interrupts::int3();
+
     // call the test suite entry point, redefined the name to test_main in attr macro,
     // compile and execute this method only in test compilation mode
     #[cfg(test)]
     test_main();
 
+    println!("It did not crash");
     loop {}
 }
